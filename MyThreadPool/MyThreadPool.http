@@ -1,0 +1,6 @@
+@MyThreadPool_HostAddress = http://localhost:5248
+
+GET {{MyThreadPool_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
