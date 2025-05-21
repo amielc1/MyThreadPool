@@ -16,7 +16,7 @@ namespace MyThreadPool.Controllers
 
         [HttpGet(Name = "GetThread")]
         public string Get()
-        { 
+        {
             return "MyThreadPoolController -> GetThread";
         }
     }
