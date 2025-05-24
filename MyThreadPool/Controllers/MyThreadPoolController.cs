@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyThreadPool.Services;
 
 namespace MyThreadPool.Controllers
 {
@@ -9,7 +10,7 @@ namespace MyThreadPool.Controllers
           
         private readonly ILogger<MyThreadPoolController> _logger;
 
-        public MyThreadPoolController(ILogger<MyThreadPoolController> logger)
+        public MyThreadPoolController(ILogger<MyThreadPoolController> logger, IThreadPool threadPool)
         {
             _logger = logger;
         }
