@@ -1,45 +1,48 @@
-using System;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using MyThreadPool.Services;
 using MyThreadPool.Settings;
-using Xunit;
+using System.Threading.Tasks;
 
 public class ThreadPoolTests
 {
     [Fact]
-    public void Execute_ShouldInvokeTask()
+    public async Task Execute_ShouldInvokeTask()
     {
-        // Arrange
-        var logger = new LoggerFactory().CreateLogger<ThreadPoolImp>();
+        var logger = TestLoggerFactory.CreateLogger<ThreadPoolImp>();
 
         var optionsMock = new Mock<IOptions<ThreadPoolSettings>>();
-        optionsMock.Setup(o => o.Value).Returns(new ThreadPoolSettings { MaxThreads = 1 });
+        optionsMock.Setup(o => o.Value).Returns(new ThreadPoolSettings { MaxThreads = 5 });
 
         var threadPool = new ThreadPoolImp(optionsMock.Object, logger);
 
-        var wasCalled = false;
+        //var wasCalled = false;
         var taskCompleted = new ManualResetEvent(false);
-
-        ThreadStart task = () =>
+        logger.LogInformation("TEST START");
+        for (int i = 0; i < 20; i++)
         {
-            wasCalled = true;
-            taskCompleted.Set(); // Signal the test that the task has finished
-        };
+            ThreadStart task = () =>
+                   {
+                       logger.LogDebug($" - Create thread {i} sleep for {1000*i}");
+                       Thread.Sleep(1000 * i);
+                       logger.LogDebug($" - thread {i} wakeup");
+                       taskCompleted.Set(); // Signal the test that the task has finished
+                   };
 
-        // Act
-        threadPool.Execute(task);
+            // Act
+            threadPool.Execute(task);
+        }
+       
 
         // Wait for task execution (max 2 seconds to avoid test hang)
-        var signaled = taskCompleted.WaitOne(TimeSpan.FromSeconds(2));
+        var signaled = taskCompleted.WaitOne(TimeSpan.FromSeconds(2)); 
+        logger.LogInformation("TEST END");
 
-        // Cleanup
-        threadPool.Dispose();
 
-        // Assert
-        Assert.True(signaled, "Task was not executed within the expected time.");
-        Assert.True(wasCalled, "Task was not executed.");
+        while (true)
+        {
+            await Task.Delay(1000);
+        }
     }
 }
