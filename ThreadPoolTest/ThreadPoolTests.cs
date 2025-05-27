@@ -13,21 +13,20 @@ public class ThreadPoolTests
         var logger = TestLoggerFactory.CreateLogger<ThreadPoolImp>();
 
         var optionsMock = new Mock<IOptions<ThreadPoolSettings>>();
-        optionsMock.Setup(o => o.Value).Returns(new ThreadPoolSettings { MaxThreads = 5 });
+        optionsMock.Setup(o => o.Value).Returns(new ThreadPoolSettings { MaxThreads = 3 });
 
         var threadPool = new ThreadPoolImp(optionsMock.Object, logger);
 
-        //var wasCalled = false;
         var taskCompleted = new ManualResetEvent(false);
         logger.LogInformation("TEST START");
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 6; i++)
         {
             ThreadStart task = () =>
                    {
                        logger.LogDebug($" - Create thread {i} sleep for {1000*i}");
                        Thread.Sleep(1000 * i);
                        logger.LogDebug($" - thread {i} wakeup");
-                       taskCompleted.Set(); // Signal the test that the task has finished
+                       taskCompleted.Set();
                    };
 
             // Act

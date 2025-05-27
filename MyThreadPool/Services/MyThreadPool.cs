@@ -7,7 +7,7 @@ public class ThreadPoolImp : IThreadPool
 {
     private readonly ConcurrentQueue<ThreadStart> _taskQueue = new();
     private readonly SemaphoreSlim _taskAvailable;
-    private readonly List<Thread> _workers = new();
+    private readonly ConcurrentQueue<Thread> _workers = new();
     private readonly CancellationTokenSource cts = new();
     private readonly ILogger<ThreadPoolImp> _logger;
     private  int _maxThreads;
@@ -30,7 +30,7 @@ public class ThreadPoolImp : IThreadPool
                 Name = $"Worker-{i}"
             };
             thread.Start();
-            _workers.Add(thread);
+            _workers.Enqueue(thread);
         }
     }
 
@@ -42,7 +42,7 @@ public class ThreadPoolImp : IThreadPool
 
         _taskQueue.Enqueue(task);
         _taskAvailable.Release();
-        _logger.LogDebug("Task enqueued. Total queued: {Count}", _taskQueue.Count);
+        _logger.LogInformation("Task enqueued. Total queued: {Count}", _taskQueue.Count);
     }
 
     private void WorkerLoop(CancellationToken token)
@@ -51,7 +51,10 @@ public class ThreadPoolImp : IThreadPool
         {
             try
             {
+                _logger.LogInformation("Worker {ThreadName} waiting... (ThreadPool size {ThreadPoolSize},TaskQueue size {taskQueueSize})", Thread.CurrentThread.Name, _workers.Count,_taskQueue.Count);
                 _taskAvailable.Wait(token);
+                _logger.LogInformation("Worker {ThreadName} released  (ThreadPool size {ThreadPoolSize},TaskQueue size {taskQueueSize})", Thread.CurrentThread.Name, _workers.Count,_taskQueue.Count);
+
             }
             catch (OperationCanceledException)
             {
@@ -63,9 +66,9 @@ public class ThreadPoolImp : IThreadPool
             {
                 try
                 {
-                    _logger.LogDebug("Worker {ThreadName} executing task", Thread.CurrentThread.Name);
-                    task.Invoke();
-                    _logger.LogDebug("Worker {ThreadName} finished task", Thread.CurrentThread.Name);
+                    _logger.LogInformation("Worker {ThreadName} executing task", Thread.CurrentThread.Name);
+                    task. Invoke();
+                    _logger.LogInformation("Worker {ThreadName} finished task", Thread.CurrentThread.Name);
                 }
                 catch (Exception ex)
                 {

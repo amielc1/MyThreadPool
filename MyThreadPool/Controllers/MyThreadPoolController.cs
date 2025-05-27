@@ -9,16 +9,29 @@ namespace MyThreadPool.Controllers
     {
           
         private readonly ILogger<MyThreadPoolController> _logger;
+        private readonly IThreadPool _threadPool;
 
         public MyThreadPoolController(ILogger<MyThreadPoolController> logger, IThreadPool threadPool)
         {
             _logger = logger;
+            _threadPool = threadPool;   
         }
 
         [HttpGet(Name = "GetThread")]
         public string Get()
         {
-            return "MyThreadPoolController -> GetThread";
+            _logger.LogInformation("GetThread called"); 
+            _threadPool.Execute(() =>
+            {
+                var sleepTime =10000;
+                _logger.LogInformation("START Executing task on thread {ThreadId} , Sleep for {sleepTime} sec", Thread.CurrentThread.ManagedThreadId,sleepTime);
+                Thread.Sleep(sleepTime);
+                _logger.LogInformation("STOP Task completed on thread {ThreadId}", Thread.CurrentThread.ManagedThreadId);
+
+               
+            });
+            _logger.LogInformation("Task enqueued successfully");
+            return "Task enqueued successfully";
         }
     }
 }
